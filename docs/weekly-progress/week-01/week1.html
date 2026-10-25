@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quorum | Weekly Progress 1</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,600;14..32,800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #06060a;
+            --surface: rgba(255, 255, 255, 0.03);
+            --surface-hover: rgba(255, 255, 255, 0.06);
+            --text-primary: #f4f4f5;
+            --text-secondary: #a1a1aa;
+            --accent: #6ee7b7;
+            --accent-glow: rgba(110, 231, 183, 0.15);
+            --purple: #a78bfa;
+            --blue: #60a5fa;
+            --border: rgba(255, 255, 255, 0.08);
+            --border-hover: rgba(255, 255, 255, 0.18);
+            --radius-sm: 10px;
+            --radius-md: 18px;
+            --radius-lg: 28px;
+            --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            --mono: 'JetBrains Mono', monospace;
+            --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: var(--font);
+            background-color: var(--bg);
+            color: var(--text-primary);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* BACKGROUND LAYERS */
+        .bg-layer { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+        .bg-base {
+            position: absolute; inset: 0;
+            background: 
+                radial-gradient(ellipse 80% 50% at 50% -20%, rgba(110, 231, 183, 0.08), transparent),
+                radial-gradient(ellipse 60% 40% at 100% 50%, rgba(167, 139, 250, 0.06), transparent),
+                radial-gradient(ellipse 60% 40% at 0% 80%, rgba(96, 165, 250, 0.05), transparent);
+        }
+        .bg-grid {
+            position: absolute; inset: 0;
+            background-image: linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+            background-size: 64px 64px;
+            mask-image: radial-gradient(ellipse 100% 100% at 50% 50%, black 30%, transparent 80%);
+            -webkit-mask-image: radial-gradient(ellipse 100% 100% at 50% 50%, black 30%, transparent 80%);
+        }
+        .bg-orb { position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.5; will-change: transform; }
+        .orb-1 { width: 500px; height: 500px; background: radial-gradient(circle, rgba(110, 231, 183, 0.4), transparent 70%); top: -10%; left: -10%; }
+        .orb-2 { width: 600px; height: 600px; background: radial-gradient(circle, rgba(167, 139, 250, 0.3), transparent 70%); top: 40%; right: -15%; }
+        .orb-3 { width: 450px; height: 450px; background: radial-gradient(circle, rgba(96, 165, 250, 0.25), transparent 70%); bottom: -10%; left: 30%; }
+        .bg-spotlight {
+            position: absolute; width: 800px; height: 800px; border-radius: 50%;
+            background: radial-gradient(circle, rgba(110, 231, 183, 0.08), transparent 60%);
+            pointer-events: none; transform: translate(-50%, -50%); left: 0; top: 0;
+            will-change: left, top; transition: left 0.4s var(--ease-out), top 0.4s var(--ease-out);
+        }
+        .bg-noise {
+            position: absolute; inset: 0; opacity: 0.035;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+            mix-blend-mode: overlay;
+        }
+        .bg-vignette { position: absolute; inset: 0; background: radial-gradient(ellipse at center, transparent 40%, rgba(6, 6, 10, 0.8) 100%); }
+
+        /* NAV & PROGRESS */
+        .scroll-progress { position: fixed; top: 0; left: 0; height: 2px; width: 0%; background: linear-gradient(90deg, var(--accent), var(--purple), var(--blue)); z-index: 1000; transition: width 0.1s linear; box-shadow: 0 0 10px var(--accent-glow); }
+        nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 1.25rem 2.5rem;
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(6, 6, 10, 0.4); backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%);
+            border-bottom: 1px solid var(--border); transition: background 0.4s var(--ease-out);
+        }
+        nav.scrolled { background: rgba(6, 6, 10, 0.85); }
+        .nav-brand { font-weight: 800; font-size: 1.25rem; letter-spacing: -0.02em; color: var(--text-primary); text-decoration: none; display: flex; align-items: center; gap: 0.25rem; }
+        .nav-brand .dot { width: 8px; height: 8px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 12px var(--accent); animation: pulse 2s ease-in-out infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.6; transform: scale(0.85); } }
+        .nav-links { display: flex; gap: 2rem; }
+        .nav-links a { color: var(--text-secondary); text-decoration: none; font-size: 0.875rem; font-weight: 500; transition: color 0.3s var(--ease-out); position: relative; }
+        .nav-links a::after { content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 1px; background: var(--accent); transition: width 0.3s var(--ease-out); }
+        .nav-links a:hover { color: var(--text-primary); }
+        .nav-links a:hover::after { width: 100%; }
+
+        /* TYPOGRAPHY & LAYOUT */
+        h1, h2, h3 { font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; }
+        h1 { font-size: clamp(2.5rem, 5.5vw, 4.5rem); }
+        h2 { font-size: clamp(2rem, 4vw, 3.5rem); margin-bottom: 1.5rem; }
+        h3 { font-size: clamp(1.125rem, 1.5vw, 1.375rem); font-weight: 600; letter-spacing: -0.01em; }
+        p { color: var(--text-secondary); font-size: 1.0625rem; max-width: 65ch; }
+        .container { max-width: 1140px; margin: 0 auto; padding: 0 2rem; position: relative; z-index: 1; }
+        section { padding: 8rem 0; min-height: 80vh; display: flex; flex-direction: column; justify-content: center; position: relative; }
+
+        /* HERO */
+        .hero { min-height: 100vh; padding-top: 10rem; }
+        .hero-label {
+            display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; font-weight: 600; color: var(--accent);
+            text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 2rem; padding: 0.5rem 1rem;
+            border: 1px solid rgba(110, 231, 183, 0.25); border-radius: 100px; background: rgba(110, 231, 183, 0.06); backdrop-filter: blur(10px);
+        }
+        .hero-label::before { content: ''; width: 6px; height: 6px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 8px var(--accent); }
+        .hero h1 { margin-bottom: 1.5rem; }
+        .hero h1 .gradient { background: linear-gradient(135deg, var(--accent), var(--purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .hero p { font-size: 1.125rem; margin-bottom: 2rem; }
+        
+        /* TEAM GRID */
+        .team-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 2rem; }
+        .team-member { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 1rem; }
+        .team-member strong { display: block; color: var(--text-primary); font-size: 0.9rem; margin-bottom: 0.25rem; }
+        .team-member span { color: var(--text-secondary); font-size: 0.75rem; font-family: var(--mono); }
+        .team-member .role { color: var(--accent); font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; display: block; }
+
+        /* CARDS */
+        .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem; margin-top: 3rem; }
+        .card {
+            background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 2rem;
+            transition: all 0.4s var(--ease-out); position: relative; overflow: hidden; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+        }
+        .card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(110, 231, 183, 0.5), transparent); opacity: 0; transition: opacity 0.4s var(--ease-out); }
+        .card::after { content: ''; position: absolute; inset: 0; background: radial-gradient(400px circle at var(--mx, 50%) var(--my, 50%), rgba(110, 231, 183, 0.06), transparent 40%); opacity: 0; transition: opacity 0.4s var(--ease-out); pointer-events: none; }
+        .card:hover { border-color: var(--border-hover); transform: translateY(-4px); box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4); }
+        .card:hover::before, .card:hover::after { opacity: 1; }
+        .card-number { font-family: var(--mono); font-size: 0.75rem; font-weight: 600; color: var(--accent); letter-spacing: 0.1em; margin-bottom: 1rem; display: block; text-transform: uppercase; }
+        .card h3 { margin-bottom: 0.75rem; }
+        .card p { font-size: 0.9375rem; line-height: 1.7; }
+
+        /* DIAGRAM */
+        .agile-diagram { display: flex; flex-direction: column; align-items: center; gap: 1rem; margin: 4rem 0; }
+        .diagram-node { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1.5rem 2.5rem; font-weight: 600; font-size: 1rem; text-align: center; width: 100%; max-width: 640px; position: relative; transition: all 0.4s var(--ease-out); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+        .diagram-node:hover { border-color: var(--accent); box-shadow: 0 0 40px var(--accent-glow); }
+        .diagram-node.accent { border-color: rgba(110, 231, 183, 0.4); background: rgba(110, 231, 183, 0.06); color: var(--accent); }
+        .diagram-arrow { color: var(--text-secondary); font-size: 1.5rem; line-height: 1; animation: bounce 2s ease-in-out infinite; }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(6px); } }
+        .sprint-cycle { display: flex; gap: 0.75rem; flex-wrap: wrap; justify-content: center; width: 100%; max-width: 800px; }
+        .sprint-step { flex: 1; min-width: 130px; background: rgba(110, 231, 183, 0.05); border: 1px dashed rgba(110, 231, 183, 0.3); border-radius: var(--radius-sm); padding: 1rem; text-align: center; font-size: 0.8125rem; font-weight: 500; transition: all 0.4s var(--ease-out); }
+        .sprint-step:hover { background: rgba(110, 231, 183, 0.1); border-style: solid; transform: scale(1.03); box-shadow: 0 8px 24px rgba(110, 231, 183, 0.15); }
+
+        /* LIST */
+        .reason-list { list-style: none; display: flex; flex-direction: column; gap: 1rem; margin-top: 2rem; }
+        .reason-item { display: flex; gap: 1.25rem; align-items: flex-start; padding: 1.5rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); transition: all 0.4s var(--ease-out); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); position: relative; overflow: hidden; }
+        .reason-item::after { content: ''; position: absolute; inset: 0; background: radial-gradient(400px circle at var(--mx, 50%) var(--my, 50%), rgba(110, 231, 183, 0.05), transparent 40%); opacity: 0; transition: opacity 0.4s var(--ease-out); pointer-events: none; }
+        .reason-item:hover { border-color: var(--border-hover); background: var(--surface-hover); transform: translateX(4px); }
+        .reason-item:hover::after { opacity: 1; }
+        .reason-icon { flex-shrink: 0; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; background: rgba(110, 231, 183, 0.08); border: 1px solid rgba(110, 231, 183, 0.2); border-radius: var(--radius-sm); color: var(--accent); font-weight: 800; font-size: 1rem; font-family: var(--mono); position: relative; z-index: 1; }
+        .reason-content { position: relative; z-index: 1; }
+        .reason-content h3 { font-size: 1.0625rem; margin-bottom: 0.25rem; }
+        .reason-content p { font-size: 0.9375rem; }
+
+        footer { padding: 4rem 0; text-align: center; border-top: 1px solid var(--border); position: relative; z-index: 1; }
+        footer p { font-size: 0.8125rem; color: var(--text-secondary); }
+
+        .gsap-fade { opacity: 0; transform: translateY(40px); }
+        .gsap-scale { opacity: 0; transform: scale(0.95); }
+
+        @media (max-width: 768px) {
+            section { padding: 6rem 0; }
+            .hero { padding-top: 8rem; }
+            .nav-links { display: none; }
+            .sprint-cycle { flex-direction: column; }
+            .team-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-layer">
+        <div class="bg-base"></div>
+        <div class="bg-grid"></div>
+        <div class="bg-orb orb-1" id="orb1"></div>
+        <div class="bg-orb orb-2" id="orb2"></div>
+        <div class="bg-orb orb-3" id="orb3"></div>
+        <div class="bg-spotlight" id="spotlight"></div>
+        <div class="bg-noise"></div>
+        <div class="bg-vignette"></div>
+    </div>
+
+    <div class="scroll-progress" id="scrollProgress"></div>
+
+    <nav id="nav">
+        <a href="#" class="nav-brand">Quorum <span class="dot"></span></a>
+        <div class="nav-links">
+            <a href="#problem">Problem</a>
+            <a href="#solution">Solution</a>
+            <a href="#verify">Verification</a>
+            <a href="#scope">Scope</a>
+        </div>
+    </nav>
+
+    <!-- HERO -->
+    <section class="hero container">
+        <div class="gsap-fade">
+            <span class="hero-label">Weekly Progress 1</span>
+            <h1>Meet <span class="gradient">Quorum</span></h1>
+            <p><strong>Your group, verified.</strong> A web-based team-formation and peer-reputation platform that solves the Lone Ranger and Free Rider problems in academic group projects.</p>
+            <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1.5rem;">
+                <strong>Course:</strong> WIA2006 SAD &nbsp;|&nbsp; <strong>Group:</strong> OCC 10 &nbsp;|&nbsp; <strong>Lecturer:</strong> Dr. Muhamad Nur Firdaus bin Sahran &nbsp;|&nbsp; <strong>Session:</strong> 2026/2027
+            </p>
+            
+            <div class="team-grid gsap-fade">
+                <div class="team-member">
+                    <span class="role">Project Manager</span>
+                    <strong>Muhammad Haqim</strong>
+                    <span>24001753</span>
+                </div>
+                <div class="team-member">
+                    <span class="role">System Analyst</span>
+                    <strong>Ershad Falah</strong>
+                    <span>24001519</span>
+                </div>
+                <div class="team-member">
+                    <span class="role">Programmer</span>
+                    <strong>Muhammad Raif</strong>
+                    <span>24002046</span>
+                </div>
+                <div class="team-member">
+                    <span class="role">UI/UX Designer</span>
+                    <strong>Muhammad 'Aasim</strong>
+                    <span>24001741</span>
+                </div>
+                <div class="team-member">
+                    <span class="role">Network Engineer</span>
+                    <strong>Aqief Ahmad</strong>
+                    <span>24001628</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- THE PROBLEM -->
+    <section id="problem" class="container">
+        <div class="gsap-fade">
+            <span class="card-number">01 — The Problem</span>
+            <h2>Two Failures in Group Formation</h2>
+            <p>Every semester, students are forced to find group mates. This informal process is broken for two types of people.</p>
+        </div>
+        <div class="card-grid gsap-fade">
+            <div class="card">
+                <span class="card-number">The Lone Ranger</span>
+                <h3>Left Out</h3>
+                <p>Capable students with small networks get excluded because they don't have a big circle to ask. Group formation becomes a popularity contest, not a meritocracy.</p>
+            </div>
+            <div class="card">
+                <span class="card-number">The Free Rider</span>
+                <h3>Carried Through</h3>
+                <p>Someone does no work, but gets the same grade. No system records who actually contributed, so they do it again next semester to a different group.</p>
+            </div>
+            <div class="card" style="border-color: rgba(110,231,183,0.3);">
+                <span class="card-number">The Root Cause</span>
+                <h3>Information Asymmetry</h3>
+                <p>Contribution is invisible <em>before</em> a project, and forgotten <em>after</em> it ends. So students default to whoever they already know.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- THE SOLUTION -->
+    <section id="solution" class="container">
+        <div class="gsap-fade">
+            <span class="card-number">02 — The Solution</span>
+            <h2>Three Pillars of Quorum</h2>
+            <p>Quorum is a LinkedIn-style platform for academic group projects, built on verified peer reviews.</p>
+        </div>
+        <div class="card-grid gsap-fade">
+            <div class="card">
+                <span class="card-number">Pillar 1 — Find</span>
+                <h3>Skill-Forward Profiles</h3>
+                <p>Students list their skills, availability, and portfolio links. Search and filter to find compatible teammates beyond your existing social circle.</p>
+            </div>
+            <div class="card">
+                <span class="card-number">Pillar 2 — Verify</span>
+                <h3>The Quorum Check</h3>
+                <p>When a team forms, <strong>every member</strong> must confirm via a UM-verified account. Only when all members confirm is the team marked <strong>Verified</strong>.</p>
+            </div>
+            <div class="card">
+                <span class="card-number">Pillar 3 — Rate</span>
+                <h3>Double-Blind Reputation</h3>
+                <p>After the project, members rate each other on 5 dimensions. You can't see your ratings until you submit yours. Builds a portable Collaboration Score.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- HOW VERIFICATION WORKS -->
+    <section id="verify" class="container">
+        <div class="gsap-fade">
+            <span class="card-number">03 — The Core Mechanic</span>
+            <h2>What "Verified" Actually Means</h2>
+            <p>Our verification layer is what makes Quorum different. No quorum, no credit.</p>
+        </div>
+
+        <div class="agile-diagram gsap-scale">
+            <div class="diagram-node">V1 — Team registers with course code & semester</div>
+            <div class="diagram-arrow">↓</div>
+            <div class="diagram-node">V2 — Every member confirms via UM-verified account</div>
+            <div class="diagram-arrow">↓</div>
+            <div class="diagram-node">V3 — All members confirmed = bound to a real course</div>
+            <div class="diagram-arrow">↓</div>
+            <div class="diagram-node accent">V4 — Team status = VERIFIED. Rating unlocked at project end.</div>
+        </div>
+
+        <div class="reason-list gsap-fade">
+            <div class="reason-item">
+                <div class="reason-icon">✓</div>
+                <div class="reason-content">
+                    <h3>Only Verified Teammates Can Rate</h3>
+                    <p>You cannot rate someone you didn't work with. This completely stops fake reviews and popularity gaming.</p>
+                </div>
+            </div>
+            <div class="reason-item">
+                <div class="reason-icon">✓</div>
+                <div class="reason-content">
+                    <h3>Double-Blind & Delayed</h3>
+                    <p>Ratings open only after the project ends. You can't see your score until you submit yours. This prevents retaliation and petty ratings.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SCOPE -->
+    <section id="scope" class="container">
+        <div class="gsap-fade">
+            <span class="card-number">04 — Project Scope</span>
+            <h2>What We Are Building</h2>
+            <p>To ensure we deliver a high-quality prototype in one semester, we have strictly defined what is in and out of scope for Version 1.</p>
+        </div>
+        <div class="reason-list gsap-fade">
+            <div class="reason-item" style="border-left: 3px solid var(--accent);">
+                <div class="reason-icon" style="background: rgba(110, 231, 183, 0.15); color: var(--accent);">IN</div>
+                <div class="reason-content">
+                    <h3>In Scope</h3>
+                    <p>Verified student profiles (skill declaration) · Team creation & all-member confirmation · Team verification logic · Double-blind five-dimension rating · Collaboration Score display · Browse/search/filter · Basic admin dashboard.</p>
+                </div>
+            </div>
+            <div class="reason-item" style="border-left: 3px solid #ff5555;">
+                <div class="reason-icon" style="background: rgba(255, 85, 85, 0.15); color: #ff5555;">OUT</div>
+                <div class="reason-content">
+                    <h3>Out of Scope (Version 1)</h3>
+                    <p>UM SIS / MAYA integration · In-app chat · File submission & version control · AI-based matching (we use rule-based filtering) · Native mobile app · Multi-faculty rollout.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>Quorum Labs (OCC 10) — WIA2006 Systems Analysis, Modelling and Design</p>
+            <p style="margin-top: 0.5rem; font-family: var(--mono); font-size: 0.75rem;">Lecturer: Dr. Muhamad Nur Firdaus bin Sahran</p>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script>
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Spotlight
+        const spotlight = document.getElementById('spotlight');
+        document.addEventListener('mousemove', (e) => {
+            spotlight.style.left = e.clientX + 'px';
+            spotlight.style.top = e.clientY + 'px';
+        });
+
+        // Orbs
+        gsap.to('#orb1', { x: 120, y: 80, duration: 12, repeat: -1, yoyo: true, ease: "sine.inOut" });
+        gsap.to('#orb2', { x: -150, y: 100, duration: 15, repeat: -1, yoyo: true, ease: "sine.inOut" });
+        gsap.to('#orb3', { x: 100, y: -120, duration: 18, repeat: -1, yoyo: true, ease: "sine.inOut" });
+
+        // Scroll Progress
+        window.addEventListener('scroll', () => {
+            const scrollTop = window.scrollY;
+            const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+            document.getElementById('scrollProgress').style.width = (scrollTop / docHeight) * 100 + '%';
+            
+            if (window.scrollY > 50) document.getElementById('nav').classList.add('scrolled');
+            else document.getElementById('nav').classList.remove('scrolled');
+        });
+
+        // Card Spotlight
+        document.querySelectorAll('.card, .reason-item').forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                card.style.setProperty('--mx', (e.clientX - rect.left) + 'px');
+                card.style.setProperty('--my', (e.clientY - rect.top) + 'px');
+            });
+        });
+
+        // Hero Animation
+        gsap.to(".hero .gsap-fade", { opacity: 1, y: 0, duration: 1.2, ease: "power3.out", delay: 0.3 });
+
+        // Scroll Animations
+        document.querySelectorAll('section:not(.hero)').forEach(section => {
+            const fadeElements = section.querySelectorAll('.gsap-fade');
+            const scaleElements = section.querySelectorAll('.gsap-scale');
+            if (fadeElements.length) gsap.to(fadeElements, { opacity: 1, y: 0, duration: 0.9, stagger: 0.15, ease: "power3.out", scrollTrigger: { trigger: section, start: "top 80%", toggleActions: "play none none reverse" } });
+            if (scaleElements.length) gsap.to(scaleElements, { opacity: 1, scale: 1, duration: 1.1, ease: "power3.out", scrollTrigger: { trigger: section, start: "top 75%", toggleActions: "play none none reverse" } });
+        });
+
+        // Grid Parallax
+        gsap.to(".bg-grid", { y: -100, ease: "none", scrollTrigger: { trigger: "body", start: "top top", end: "bottom bottom", scrub: 1 } });
+    </script>
+</body>
+</html>
