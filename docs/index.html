@@ -1,9 +1,274 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta http-equiv="refresh" content="0; url=weekly-progress/week-01/week1.html">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quorum | Progress Hub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,600;14..32,800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #06060a;
+            --surface: rgba(255, 255, 255, 0.03);
+            --surface-hover: rgba(255, 255, 255, 0.08);
+            --text-primary: #f4f4f5;
+            --text-secondary: #a1a1aa;
+            --accent: #6ee7b7;
+            --accent-glow: rgba(110, 231, 183, 0.15);
+            --purple: #a78bfa;
+            --blue: #60a5fa;
+            --border: rgba(255, 255, 255, 0.08);
+            --border-hover: rgba(255, 255, 255, 0.2);
+            --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            --mono: 'JetBrains Mono', monospace;
+            --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: var(--font);
+            background-color: var(--bg);
+            color: var(--text-primary);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* BACKGROUND LAYERS */
+        .bg-layer { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+        .bg-base {
+            position: absolute; inset: 0;
+            background: 
+                radial-gradient(ellipse 80% 50% at 50% -20%, rgba(110, 231, 183, 0.08), transparent),
+                radial-gradient(ellipse 60% 40% at 100% 50%, rgba(167, 139, 250, 0.06), transparent),
+                radial-gradient(ellipse 60% 40% at 0% 80%, rgba(96, 165, 250, 0.05), transparent);
+        }
+        .bg-grid {
+            position: absolute; inset: 0;
+            background-image: linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+            background-size: 64px 64px;
+            mask-image: radial-gradient(ellipse 100% 100% at 50% 50%, black 30%, transparent 80%);
+            -webkit-mask-image: radial-gradient(ellipse 100% 100% at 50% 50%, black 30%, transparent 80%);
+        }
+        .bg-orb { position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.5; will-change: transform; }
+        .orb-1 { width: 500px; height: 500px; background: radial-gradient(circle, rgba(110, 231, 183, 0.4), transparent 70%); top: -10%; left: -10%; }
+        .orb-2 { width: 600px; height: 600px; background: radial-gradient(circle, rgba(167, 139, 250, 0.3), transparent 70%); bottom: -20%; right: -10%; }
+        .bg-noise {
+            position: absolute; inset: 0; opacity: 0.035;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+            mix-blend-mode: overlay;
+        }
+        .bg-vignette { position: absolute; inset: 0; background: radial-gradient(ellipse at center, transparent 30%, rgba(6, 6, 10, 0.9) 100%); }
+
+        /* CONTENT */
+        .container {
+            max-width: 1000px;
+            width: 100%;
+            padding: 3rem 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header { text-align: center; margin-bottom: 4rem; }
+        
+        .hero-label {
+            display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; font-weight: 600; color: var(--accent);
+            text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 1.5rem; padding: 0.5rem 1rem;
+            border: 1px solid rgba(110, 231, 183, 0.25); border-radius: 100px; background: rgba(110, 231, 183, 0.06); backdrop-filter: blur(10px);
+        }
+        .hero-label::before { content: ''; width: 6px; height: 6px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 8px var(--accent); animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+        h1 { font-size: clamp(2.5rem, 5vw, 4rem); font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; margin-bottom: 1rem; }
+        h1 .gradient { background: linear-gradient(135deg, var(--accent), var(--purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        p.subtitle { color: var(--text-secondary); font-size: 1.125rem; max-width: 600px; margin: 0 auto; }
+
+        /* WEEK GRID */
+        .week-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .week-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 2rem;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.4s var(--ease-out);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .week-card::before {
+            content: '';
+            position: absolute; top: 0; left: 0; right: 0; height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(110, 231, 183, 0.5), transparent);
+            opacity: 0; transition: opacity 0.4s var(--ease-out);
+        }
+        .week-card::after {
+            content: '';
+            position: absolute; inset: 0;
+            background: radial-gradient(400px circle at var(--mx, 50%) var(--my, 50%), rgba(110, 231, 183, 0.08), transparent 40%);
+            opacity: 0; transition: opacity 0.4s var(--ease-out); pointer-events: none;
+        }
+
+        .week-card:hover {
+            border-color: var(--border-hover);
+            transform: translateY(-6px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+        .week-card:hover::before, .week-card:hover::after { opacity: 1; }
+
+        .week-card.coming-soon {
+            opacity: 0.4;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .week-num {
+            font-family: var(--mono);
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--accent);
+            letter-spacing: 0.1em;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .week-card h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.5rem;
+            position: relative; z-index: 1;
+        }
+        .week-card p {
+            font-size: 0.9375rem;
+            color: var(--text-secondary);
+            position: relative; z-index: 1;
+        }
+
+        .arrow {
+            margin-top: 1.5rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--accent);
+            position: relative; z-index: 1;
+            transition: gap 0.3s var(--ease-out);
+        }
+        .week-card:hover .arrow { gap: 0.75rem; }
+
+        /* FOOTER */
+        .footer { text-align: center; margin-top: 5rem; color: var(--text-secondary); font-size: 0.8125rem; }
+        .footer strong { color: var(--text-primary); }
+
+        .gsap-fade { opacity: 0; transform: translateY(30px); }
+    </style>
 </head>
 <body>
-    <p>Redirecting to Weekly Progress 1...</p>
+
+    <!-- BACKGROUND -->
+    <div class="bg-layer">
+        <div class="bg-base"></div>
+        <div class="bg-grid"></div>
+        <div class="bg-orb orb-1" id="orb1"></div>
+        <div class="bg-orb orb-2" id="orb2"></div>
+        <div class="bg-noise"></div>
+        <div class="bg-vignette"></div>
+    </div>
+
+    <div class="container">
+        <!-- HEADER -->
+        <div class="header gsap-fade">
+            <span class="hero-label">Quorum Labs · OCC 10</span>
+            <h1>Weekly Progress <span class="gradient">Hub</span></h1>
+            <p class="subtitle">WIA2006 Systems Analysis, Modelling and Design. Select a week below to view the interactive presentation.</p>
+        </div>
+
+        <!-- WEEK GRID -->
+        <div class="week-grid">
+            
+            <!-- WEEK 1 -->
+            <a href="./weekly-progress/week-01/week1.html" class="week-card gsap-fade">
+                <span class="week-num">WEEK 01</span>
+                <h2>Project Proposal</h2>
+                <p>Identifying the problem, the Quorum solution, and defining the project scope.</p>
+                <div class="arrow">View Presentation →</div>
+            </a>
+
+            <!-- WEEK 2 -->
+            <a href="./weekly-progress/week-02/week2.html" class="week-card gsap-fade">
+                <span class="week-num">WEEK 02</span>
+                <h2>Development Methodology</h2>
+                <p>Agile Scrum framework, sprint cycles, and the justification for our chosen approach.</p>
+                <div class="arrow">View Presentation →</div>
+            </a>
+
+            <!-- WEEK 3 (Coming Soon) -->
+            <div class="week-card coming-soon gsap-fade">
+                <span class="week-num">WEEK 03</span>
+                <h2>Fact Finding & Analysis</h2>
+                <p>Interviews, as-is system analysis, and the Functional Decomposition Diagram.</p>
+            </div>
+
+            <!-- WEEK 4 (Coming Soon) -->
+            <div class="week-card coming-soon gsap-fade">
+                <span class="week-num">WEEK 04</span>
+                <h2>To-Be System Modelling</h2>
+                <p>Proposed FDD, Context Diagram, and Level 0 DFD.</p>
+            </div>
+
+        </div>
+
+        <!-- FOOTER -->
+        <div class="footer gsap-fade">
+            <p><strong>Quorum Labs</strong> — Lecturer: Dr. Muhamad Nur Firdaus bin Sahran</p>
+        </div>
+    </div>
+
+    <!-- GSAP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script>
+        // Orb Animations
+        gsap.to('#orb1', { x: 100, y: 50, duration: 10, repeat: -1, yoyo: true, ease: "sine.inOut" });
+        gsap.to('#orb2', { x: -100, y: -50, duration: 14, repeat: -1, yoyo: true, ease: "sine.inOut" });
+
+        // Staggered Entrance
+        gsap.to(".gsap-fade", {
+            opacity: 1,
+            y: 0,
+            duration: 1,
+            stagger: 0.1,
+            ease: "power3.out",
+            delay: 0.2
+        });
+
+        // Card Mouse Spotlight
+        document.querySelectorAll('.week-card:not(.coming-soon)').forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                card.style.setProperty('--mx', x + 'px');
+                card.style.setProperty('--my', y + 'px');
+            });
+        });
+    </script>
 </body>
 </html>
